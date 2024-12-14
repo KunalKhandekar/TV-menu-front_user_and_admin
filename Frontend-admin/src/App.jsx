@@ -37,6 +37,7 @@ function App() {
                 }
               />
               <Route path="/login" element={<AdminLogin />} />
+              <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </div>
         </Router>
