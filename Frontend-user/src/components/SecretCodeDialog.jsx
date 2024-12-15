@@ -25,8 +25,12 @@ export function SecretCodeDialog({ onSubmit }) {
     try {
       const result = await onSubmit(submittedCode);
       if (result.success) {
-        localStorage.setItem('secretCode', submittedCode);
-        navigate(`/restaurant/${result.restaurantId}`);
+        if (result.isEnabled) {
+          localStorage.setItem('secretCode', submittedCode);
+          navigate(`/restaurant/${result.restaurantId}`);
+        } else {
+          setError("This restaurant is currently disabled.");
+        }
       } else {
         setError("Invalid secret code. Please try again.");
       }
@@ -64,3 +68,4 @@ export function SecretCodeDialog({ onSubmit }) {
     </Dialog>
   );
 }
+

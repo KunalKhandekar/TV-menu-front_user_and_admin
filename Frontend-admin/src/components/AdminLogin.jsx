@@ -48,8 +48,9 @@ export default function AdminLogin() {
         { withCredentials: true }
       );
 
-      const token = result?.data?.token;
+      const { token, role } = result.data;
       localStorage.setItem("authToken", token);
+      localStorage.setItem("adminRole", role);
 
       if (rememberMe) {
         localStorage.setItem("adminEmail", email);

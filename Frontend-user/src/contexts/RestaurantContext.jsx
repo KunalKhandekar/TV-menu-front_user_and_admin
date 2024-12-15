@@ -18,6 +18,9 @@ export const RestaurantProvider = ({ children }) => {
       if (error.response && error.response.status === 404) {
         return null;
       }
+      if (error.response && error.response.status === 403) {
+        return { isEnabled: false };
+      }
       console.error("Fetching restaurant by secret code failed:", error);
       throw error;
     } finally {
@@ -40,15 +43,18 @@ export const RestaurantProvider = ({ children }) => {
     }
   };
 
-  useEffect(()=> {
+  useEffect(() => {
     fetchRestaurants();
-  }, [])
+  }, []);
 
   const getRestaurant = async (id) => {
     try {
       const response = await axiosInstance.get(`/restaurants/${id}`);
       return response.data;
     } catch (error) {
+      if (error.response && error.response.status === 403) {
+        return { isEnabled: false };
+      }
       console.error("Fetching restaurant failed:", error);
       toast.error(`Failed to fetch restaurant: ${error.message}`);
       throw error;
@@ -205,7 +211,7 @@ export const RestaurantProvider = ({ children }) => {
       toast.success("Secret code updated successfully");
       return response.data;
     } catch (error) {
-      console.error("Updating secret code failed:",error);
+      console.error("Updating secret code failed:", error);
       toast.error(`Failed to update secret code: ${error.message}`);
       throw error;
     }

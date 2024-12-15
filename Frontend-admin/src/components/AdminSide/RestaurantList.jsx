@@ -1,14 +1,16 @@
-import React, { useState, useContext, useEffect } from "react";
-import { RestaurantContext } from "../../contexts/RestaurantContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+"use client"
+
+import React, { useState, useContext, useEffect } from "react"
+import { RestaurantContext } from "@/contexts/RestaurantContext"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
+} from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -17,9 +19,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,13 +32,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Trash2, Tv, Key, Loader2 } from 'lucide-react';
-import { ThemeToggle } from "../theme-toggle";
-import TVList from "./TVList";
-import { useNavigate } from "react-router-dom";
-import { Home, LogOut } from 'lucide-react';
+} from "@/components/ui/alert-dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Plus, Edit, Trash2, Tv, Key, Loader2, ToggleLeft, ToggleRight } from 'lucide-react'
+import { ThemeToggle } from "@/components/theme-toggle"
+import TVList from "../AdminSide/TVList"
+
+import { LogOut } from 'lucide-react'
+import { Switch } from "@/components/ui/switch"
+import { useNavigate } from "react-router-dom"
 
 export function RestaurantList() {
   const {
@@ -48,100 +52,112 @@ export function RestaurantList() {
     updateRestaurant,
     deleteRestaurant,
     updateSecretCodeword,
-  } = useContext(RestaurantContext);
+    toggleRestaurantStatus,
+  } = useContext(RestaurantContext)
   const [newRestaurant, setNewRestaurant] = useState({
     name: "",
     description: "",
     secret_codeword: "",
-  });
-  const [editingRestaurant, setEditingRestaurant] = useState(null);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isCreating, setIsCreating] = useState(false); 
-  const [isDeleting, setIsDeleting] = useState(false); 
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isSecretCodeDialogOpen, setIsSecretCodeDialogOpen] = useState(false);
-  const [newSecretCode, setNewSecretCode] = useState("");
+  })
+  const [editingRestaurant, setEditingRestaurant] = useState(null)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isSecretCodeDialogOpen, setIsSecretCodeDialogOpen] = useState(false)
+  const [newSecretCode, setNewSecretCode] = useState("")
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
 
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    navigate("/login");
-  };
+  const navigate = useNavigate()
 
   useEffect(() => {
-    fetchRestaurants();
-  }, []);
+    fetchRestaurants()
+    const adminRole = localStorage.getItem("adminRole")
+    setIsSuperAdmin(adminRole === "superadmin")
+  }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken")
+    localStorage.removeItem("adminRole")
+    navigate("/login")
+  }
 
   const handleCreateRestaurant = async (e) => {
-    e.preventDefault();
-    setIsCreating(true); 
+    e.preventDefault()
+    setIsCreating(true)
     try {
-      await createRestaurant(newRestaurant);
-      setNewRestaurant({ name: "", description: "", secret_codeword: "" });
-      setIsAddDialogOpen(false);
+      await createRestaurant(newRestaurant)
+      setNewRestaurant({ name: "", description: "", secret_codeword: "" })
+      setIsAddDialogOpen(false)
     } catch (error) {
-      console.error("Error creating restaurant:", error);
+      console.error("Error creating restaurant:", error)
     } finally {
-      setIsCreating(false); 
+      setIsCreating(false)
     }
-  };
+  }
 
   const handleUpdateRestaurant = async (e) => {
-    e.preventDefault();
-    setIsUpdating(true);
+    e.preventDefault()
+    setIsUpdating(true)
     try {
-      await updateRestaurant(editingRestaurant._id, editingRestaurant);
-      setEditingRestaurant(null);
-      setIsEditDialogOpen(false);
-      fetchRestaurants();
+      await updateRestaurant(editingRestaurant._id, editingRestaurant)
+      setEditingRestaurant(null)
+      setIsEditDialogOpen(false)
+      fetchRestaurants()
     } catch (error) {
-      console.error("Error updating restaurant:", error);
+      console.error("Error updating restaurant:", error)
     } finally {
-      setIsUpdating(false);
+      setIsUpdating(false)
     }
-  };
+  }
 
   const handleDeleteRestaurant = async (id) => {
-    setIsDeleting(true); 
+    setIsDeleting(true)
     try {
-      await deleteRestaurant(id);
-      fetchRestaurants();
+      await deleteRestaurant(id)
+      fetchRestaurants()
     } catch (error) {
-      console.error("Error deleting restaurant:", error);
+      console.error("Error deleting restaurant:", error)
     } finally {
-      setIsDeleting(false); 
+      setIsDeleting(false)
     }
-  };
+  }
 
   const handleUpdateSecretCode = async (restaurantId) => {
-    setIsUpdating(true);
+    setIsUpdating(true)
     try {
       await updateSecretCodeword(restaurantId, {
         secret_codeword: newSecretCode,
-      });
-      setNewSecretCode("");
-      setIsSecretCodeDialogOpen(false);
-      fetchRestaurants();
+      })
+      setNewSecretCode("")
+      setIsSecretCodeDialogOpen(false)
+      fetchRestaurants()
     } catch (error) {
-      console.error("Error updating secret code:", error);
+      console.error("Error updating secret code:", error)
     } finally {
-      setIsUpdating(false);
+      setIsUpdating(false)
     }
-  };
+  }
 
+  const handleToggleStatus = async (id, currentStatus) => {
+    try {
+      await toggleRestaurantStatus(id, !currentStatus)
+      fetchRestaurants()
+    } catch (error) {
+      console.error("Error toggling restaurant status:", error)
+    }
+  }
 
-if (loading) {
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-background text-foreground">
-      <Loader2 className="h-16 w-16 animate-spin text-purple-600" />
-    </div>
-  );
-}
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background text-foreground">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
+    )
+  }
 
-  
-  if (error) return <div>Error: {error}</div>;
+  if (error) return <div>Error: {error}</div>
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -149,7 +165,6 @@ if (loading) {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Restaurant Management</h1>
           <div className="flex items-center gap-4">
-            
             <Button
               variant="destructive"
               onClick={handleLogout}
@@ -255,161 +270,58 @@ if (loading) {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {restaurants.map((restaurant) => (
               <Card key={restaurant._id} className="flex flex-col">
-                <CardHeader>
-                  <CardTitle>{restaurant.name}</CardTitle>
-                  <CardDescription>{restaurant.description}</CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {restaurant.name}
+                  </CardTitle>
+                  {isSuperAdmin && (
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        checked={restaurant.isEnabled}
+                        onCheckedChange={() => handleToggleStatus(restaurant._id, restaurant.isEnabled)}
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        {restaurant.isEnabled ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </div>
+                  )}
                 </CardHeader>
                 <CardContent>
-                  <Tabs defaultValue="details">
+                  <CardDescription>{restaurant.description}</CardDescription>
+                  <Tabs defaultValue="details" className="w-full mt-4">
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="details">Details</TabsTrigger>
                       <TabsTrigger value="tvs">TVs</TabsTrigger>
                     </TabsList>
                     <TabsContent value="details" className="space-y-4">
-                      <div className="flex justify-end space-x-2">
-                        <Dialog
-                          open={isEditDialogOpen}
-                          onOpenChange={setIsEditDialogOpen}
-                        >
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              onClick={() => setEditingRestaurant(restaurant)}
-                            >
-                              <Edit className="mr-2 h-4 w-4" /> Edit
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Edit Restaurant</DialogTitle>
-                              <DialogDescription>
-                                Make changes to the restaurant details here.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <form onSubmit={handleUpdateRestaurant}>
-                              <div className="grid gap-4 py-4">
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label
-                                    htmlFor="edit-name"
-                                    className="text-right"
-                                  >
-                                    Name
-                                  </Label>
-                                  <Input
-                                    id="edit-name"
-                                    value={editingRestaurant?.name}
-                                    onChange={(e) =>
-                                      setEditingRestaurant({
-                                        ...editingRestaurant,
-                                        name: e.target.value,
-                                      })
-                                    }
-                                    className="col-span-3"
-                                  />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label
-                                    htmlFor="edit-description"
-                                    className="text-right"
-                                  >
-                                    Description
-                                  </Label>
-                                  <Textarea
-                                    id="edit-description"
-                                    value={editingRestaurant?.description}
-                                    onChange={(e) =>
-                                      setEditingRestaurant({
-                                        ...editingRestaurant,
-                                        description: e.target.value,
-                                      })
-                                    }
-                                    className="col-span-3"
-                                  />
-                                </div>
-                              </div>
-                              <DialogFooter>
-                                <Button type="submit" disabled={isUpdating}>
-                                  {isUpdating ? (
-                                    <>
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                      Updating...
-                                    </>
-                                  ) : (
-                                    "Save changes"
-                                  )}
-                                </Button>
-                              </DialogFooter>
-                            </form>
-                          </DialogContent>
-                        </Dialog>
-                        <Dialog
-                          open={isSecretCodeDialogOpen}
-                          onOpenChange={(isOpen) => {
-                            setIsSecretCodeDialogOpen(isOpen);
-                            if (isOpen) {
-                              setNewSecretCode(restaurant?.secret_codeword); 
-                            }
+                      <div className="flex space-x-2 mt-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingRestaurant(restaurant)
+                            setIsEditDialogOpen(true)
                           }}
                         >
-                          <DialogTrigger asChild>
-                            <Button variant="outline">
-                              <Key className="mr-2 h-4 w-4" /> Update Secret
-                              Code
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Update Secret Code</DialogTitle>
-                              <DialogDescription>
-                                Enter a new secret code for this restaurant.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label
-                                  htmlFor="new-secret-code"
-                                  className="text-right"
-                                >
-                                  New Secret Code
-                                </Label>
-                                <Input
-                                  id="new-secret-code"
-                                  value={newSecretCode}
-                                  onChange={(e) =>
-                                    setNewSecretCode(e.target.value)
-                                  }
-                                  className="col-span-3"
-                                />
-                              </div>
-                            </div>
-                            <DialogFooter>
-                              <Button
-                                onClick={() =>
-                                  handleUpdateSecretCode(restaurant._id)
-                                }
-                                disabled={
-                                  isUpdating ||
-                                  newSecretCode?.trim() ===
-                                    restaurant?.secret_codeword
-                                }
-                              >
-                                {isUpdating ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Updating...
-                                  </>
-                                ) : (
-                                  "Update Secret Code"
-                                )}
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setNewSecretCode(restaurant.secret_codeword)
+                            setIsSecretCodeDialogOpen(true)
+                          }}
+                        >
+                          <Key className="h-4 w-4 mr-2" />
+                          Update Secret Code
+                        </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="destructive">
-                              <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            <Button variant="destructive" size="sm">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -446,7 +358,7 @@ if (loading) {
                       </div>
                     </TabsContent>
                     <TabsContent value="tvs">
-                      <TVList restaurantId={restaurant._id} get_tv={restaurant?.tvs} />
+                      <TVList restaurantId={restaurant._id} tvs={restaurant.tvs} />
                     </TabsContent>
                   </Tabs>
                 </CardContent>
@@ -455,7 +367,103 @@ if (loading) {
           </div>
         )}
       </div>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Restaurant</DialogTitle>
+            <DialogDescription>
+              Make changes to the restaurant details here.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUpdateRestaurant}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="edit-name"
+                  value={editingRestaurant?.name}
+                  onChange={(e) =>
+                    setEditingRestaurant({
+                      ...editingRestaurant,
+                      name: e.target.value,
+                    })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-description" className="text-right">
+                  Description
+                </Label>
+                <Textarea
+                  id="edit-description"
+                  value={editingRestaurant?.description}
+                  onChange={(e) =>
+                    setEditingRestaurant({
+                      ...editingRestaurant,
+                      description: e.target.value,
+                    })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={isUpdating}>
+                {isUpdating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  "Save changes"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isSecretCodeDialogOpen} onOpenChange={setIsSecretCodeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Secret Code</DialogTitle>
+            <DialogDescription>
+              Enter a new secret code for this restaurant.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="new-secret-code" className="text-right">
+                New Secret Code
+              </Label>
+              <Input
+                id="new-secret-code"
+                value={newSecretCode}
+                onChange={(e) => setNewSecretCode(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => handleUpdateSecretCode(editingRestaurant?._id)}
+              disabled={isUpdating || newSecretCode?.trim() === editingRestaurant?.secret_codeword}
+            >
+              {isUpdating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Update Secret Code"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
-  );
+  )
 }
 

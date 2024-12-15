@@ -9,7 +9,11 @@ function Homepage() {
     try {
       const restaurant = await getRestaurantBySecretCodeword(code.trim());
       if (restaurant) {
-        return { success: true, restaurantId: restaurant._id };
+        return { 
+          success: true, 
+          restaurantId: restaurant._id, 
+          isEnabled: restaurant.isEnabled 
+        };
       } else {
         return { success: false };
       }
@@ -27,3 +31,4 @@ function Homepage() {
 }
 
 export default Homepage;
+

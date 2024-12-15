@@ -9,6 +9,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const SlidingControl = React.memo(({ isSliding, setIsSliding }) => (
   <div className="flex items-center space-x-2">
@@ -65,10 +66,15 @@ function TvPage() {
       try {
         const restaurantData = await getRestaurant(id);
         setRestaurant(restaurantData);
-        const tvsData = await getTVs(id);
-        setTvs(tvsData);
+        if (restaurantData.isEnabled) {
+          const tvsData = await getTVs(id);
+          setTvs(tvsData);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
+        if (error.response && error.response.status === 403) {
+          setRestaurant({ isEnabled: false });
+        }
       } finally {
         setLoading(false);
       }
@@ -110,18 +116,34 @@ function TvPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground">
         <Loader2 className="w-16 h-16 animate-spin text-primary" />
-        <p className="mt-4 text-xl font-semibold">Loading TVs...</p>
+        <p className="mt-4 text-xl font-semibold">Loading...</p>
       </div>
     );
   }
 
-  if (!restaurant || tvs.length === 0) {
+  if (!restaurant || !restaurant.isEnabled) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertTitle>Restaurant Disabled</AlertTitle>
+          <AlertDescription>
+            This restaurant is currently disabled. Please contact the administrator for more information.
+          </AlertDescription>
+        </Alert>
+        <Button onClick={() => navigate('/')} className="mt-4">
+          Return to Home
+        </Button>
+      </div>
+    );
+  }
+
+  if (tvs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground">
         <h2 className="text-2xl font-bold mb-4">No TVs Found</h2>
         <p className="text-xl text-muted-foreground mb-4">We couldn't find any TVs for this restaurant.</p>
         <Button onClick={() => navigate('/')}>
-          Return to Restaurant List
+          Return to Home
         </Button>
       </div>
     );

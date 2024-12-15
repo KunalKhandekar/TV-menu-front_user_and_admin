@@ -40,9 +40,9 @@ export const RestaurantProvider = ({ children }) => {
     }
   };
 
-  useEffect(()=> {
+  useEffect(() => {
     fetchRestaurants();
-  }, [])
+  }, []);
 
   const getRestaurant = async (id) => {
     try {
@@ -205,8 +205,23 @@ export const RestaurantProvider = ({ children }) => {
       toast.success("Secret code updated successfully");
       return response.data;
     } catch (error) {
-      console.error("Updating secret code failed:",error);
+      console.error("Updating secret code failed:", error);
       toast.error(`Failed to update secret code: ${error.message}`);
+      throw error;
+    }
+  };
+
+  const toggleRestaurantStatus = async (id, newStatus) => {
+    try {
+      const response = await axiosInstance.patch(`/restaurants/${id}/toggle-status`, { isEnabled: newStatus });
+      setRestaurants(restaurants.map(restaurant => 
+        restaurant._id === id ? { ...restaurant, isEnabled: newStatus } : restaurant
+      ));
+      toast.success(`Restaurant ${newStatus ? 'enabled' : 'disabled'} successfully`);
+      return response.data;
+    } catch (error) {
+      console.error("Toggling restaurant status failed:", error);
+      toast.error(`Failed to toggle restaurant status: ${error.message}`);
       throw error;
     }
   };
@@ -231,10 +246,13 @@ export const RestaurantProvider = ({ children }) => {
         getImages,
         addImage,
         deleteImage,
+        toggleRestaurantStatus,
       }}
     >
       {children}
     </RestaurantContext.Provider>
   );
 };
+
+export default RestaurantProvider;
 

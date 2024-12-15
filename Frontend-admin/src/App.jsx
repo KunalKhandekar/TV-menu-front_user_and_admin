@@ -13,9 +13,16 @@ import { ThemeProvider } from "./contexts/theme-provider";
 
 const ProtectedRoute = ({ children }) => {
   const authToken = localStorage.getItem("authToken");
+  const adminRole = localStorage.getItem("adminRole");
+
   if (!authToken) {
     return <Navigate to="/login" replace />;
   }
+
+  if (adminRole !== "admin" && adminRole !== "superadmin") {
+    return <Navigate to="/login" replace />;
+  }
+
   return children;
 };
 
@@ -31,8 +38,7 @@ function App() {
                 path="/"
                 element={
                   <ProtectedRoute>
-                    {" "}
-                    <RestaurantList />{" "}
+                    <RestaurantList />
                   </ProtectedRoute>
                 }
               />
